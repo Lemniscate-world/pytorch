@@ -32,6 +32,7 @@ from torch.testing._internal.common_device_type import (
     expectedFailureMPS,
     instantiate_device_type_tests,
     largeTensorTest,
+    onlyAccelerator,
     onlyCPU,
     onlyCUDA,
     onlyNativeDeviceTypes,
@@ -3347,7 +3348,7 @@ class TestConvolutionNNDeviceType(NNTestCase):
             with torch.backends.cudnn.flags(enabled=False):
                 _test_module_empty_input(self, mod, inp, check_size=False)
 
-    @onlyCUDA
+    @onlyAccelerator
     @largeTensorTest("12GB")
     @serialTest()
     def test_conv_large_nosplit(self, device):
@@ -3408,7 +3409,7 @@ class TestConvolutionNNDeviceType(NNTestCase):
             out2 = conv1(input_c)
             self.assertEqual(out1, out2)
 
-    @onlyCUDA
+    @onlyAccelerator
     @largeTensorTest("12GB")
     @serialTest()
     def test_conv_transposed_large(self, device):
@@ -3453,7 +3454,7 @@ class TestConvolutionNNDeviceType(NNTestCase):
             self.assertEqual(maxdiff2, 0)
             self.assertEqual(maxdiff3, 0)
 
-    @onlyCUDA
+    @onlyAccelerator
     @largeTensorTest("12GB")
     @serialTest()
     def test_conv_large(self, device):
