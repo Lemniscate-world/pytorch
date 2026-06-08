@@ -980,7 +980,9 @@ class FSDPParamGroup:
         # the shared group. ``new_groups`` caches groups by shard ranks within
         # one set_separate_reduce_scatter_group call so meshes sharding over the
         # same ranks share one communicator (typically one total) rather than one
-        # per mesh; dist.new_group is collective, so call symmetrically.
+        # per mesh. HSDP ranks may create only their local shard subgroup, so
+        # use local synchronization to avoid waiting for nonmember ranks in
+        # new_group's post-init barrier.
         mesh_info = self.mesh_info
         if not isinstance(mesh_info, FSDPMeshInfo):
             raise AssertionError(
@@ -994,9 +996,14 @@ class FSDPParamGroup:
             # Reuse the mesh's existing group if already enabled (idempotent),
             # else create one for this rank set.
             existing = mesh_info.reduce_scatter_process_group
-            new_groups[ranks] = (
-                existing if existing is not None else dist.new_group(list(ranks))
-            )
+            if existing is not None:
+                new_groups[ranks] = existing
+            else:
+                new_groups[ranks] = dist.new_group(
+                    list(ranks),
+                    use_local_synchronization=True,
+                    group_desc="fsdp_reduce_scatter",
+                )
         mesh_info.reduce_scatter_process_group = new_groups[ranks]
 
     @property

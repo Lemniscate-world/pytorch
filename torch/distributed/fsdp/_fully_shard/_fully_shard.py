@@ -767,10 +767,11 @@ class FSDPModule:
         streams but through the **same** process group -- one NCCL communicator,
         which processes one collective at a time and so serializes them on the
         wire. When enabled, FSDP creates a dedicated process group over the shard
-        ranks (``dist.new_group``) -- one per distinct set of shard ranks,
-        typically a single communicator -- so the two collectives can progress
-        concurrently when the network can sustain it. This is collective: like
-        other FSDP comm setup, call it on all ranks.
+        ranks (``dist.new_group(..., use_local_synchronization=True)``) -- one
+        per distinct set of shard ranks, typically a single communicator -- so
+        the two collectives can progress concurrently when the network can
+        sustain it. This is collective for each shard rank set: like other FSDP
+        comm setup, call it consistently across ranks using this FSDP mesh.
 
         Args:
             enable (bool): ``True`` (default) gives reduce-scatter its own
